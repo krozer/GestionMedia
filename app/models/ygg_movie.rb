@@ -233,7 +233,46 @@ class YggMovie < ApplicationRecord
     end
   end
   
-  
+  def associate_tmdb(tmdb_id)
+    tmdb_entry = TmdbMovie.find_or_initialize_by(id: tmdb_id)
+
+    if tmdb_entry.new_record?
+      details = Tmdb::Movie.detail(tmdb_id, language: "fr")
+
+      tmdb_entry.update!(
+        title: details.title,
+        release_date: details.release_date,
+        overview: details.overview,
+        adult: details.adult,
+        backdrop_path: details.backdrop_path,
+        original_language: details.original_language,
+        original_title: details.original_title,
+        popularity: details.popularity,
+        poster_path: details.poster_path,
+        video: details.respond_to?(:video) ? details.video : nil,
+        vote_average: details.vote_average,
+        vote_count: details.vote_count
+      )
+
+      # Met à jour les genres associés
+      if details.genre_ids.present?
+        details.genre_ids.each do |genre_id|
+          genre = Genre.find_or_create_by!(id: genre_id)
+          GenresTmdbMovie.find_or_create_by!(tmdb_movie: tmdb_entry, genre: genre)
+        end
+      end
+    end
+
+    self.update!(tmdb_id: tmdb_entry.id)
+    Rails.logger.info "YggMovie ID #{id} associé à TMDb ID #{tmdb_entry.id}."
+    tmdb_entry
+  rescue Tmdb::Error => e
+    Rails.logger.error "Erreur TMDb : #{e.message}"
+    raise
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "Erreur de validation ActiveRecord : #{e.message}"
+    raise
+  end
 
   def self.search_all_tmdb_id
     where(tmdb_id: nil).find_each do |ygg_movie|

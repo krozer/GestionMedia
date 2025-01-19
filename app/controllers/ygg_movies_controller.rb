@@ -41,10 +41,11 @@ def associate_tmdb
   ygg_movie = YggMovie.find(params[:id])
   tmdb_id = params[:tmdb_id]
 
-  if ygg_movie.update(tmdb_id: tmdb_id)
-    render json: { message: "L'association a été mise à jour avec succès !" }
-  else
-    render json: { message: "Erreur lors de la mise à jour de l'association." }, status: :unprocessable_entity
+  begin
+    ygg_movie.associate_tmdb(tmdb_id)
+    render json: { message: "L'association a été mise à jour avec succès !" }, status: :ok
+  rescue StandardError => e
+    render json: { error: "Erreur : #{e.message}" }, status: :unprocessable_entity
   end
 end
 private

@@ -31,10 +31,15 @@
             <td><%= ygg_movie.name %></td>
 			<td><%= ygg_movie.human_readable_size  %></td>
         <td>
-         <button class="correct-button" data-controller="movie-modal" data-action="click->movie-modal#openModal" data-ygg-id="<%= ygg_movie.id %>" data-titre="<%= ygg_movie.titre %>">
-    Corriger
-            Corriger
-          </button>
+			<button 
+			class="correct-button" 
+			data-controller="movie-modal"
+			data-action="click->movie-modal#openModal"
+			data-ygg-id="<%= ygg_movie.id %>" 
+			data-titre="<%= ygg_movie.titre %>"
+			>
+			Corriger
+			</button>
         </td>
           </tr>
         <% end %>

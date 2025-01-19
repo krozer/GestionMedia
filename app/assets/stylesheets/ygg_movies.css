@@ -208,3 +208,9 @@ body {
 	background: rgba(0, 0, 0, 0.8);
 	z-index: 1000;
   }  
+
+  #tmdb-results {
+	max-height: calc(100vh - 200px); /* Prend toute la hauteur de la page moins un espace pour le header/footer */
+	overflow-y: auto;               /* Ajoute une barre de défilement verticale si nécessaire */
+	padding: 10px;                  /* Ajoute un peu d'espace interne */
+  }

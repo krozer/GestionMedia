@@ -14,7 +14,7 @@ export default class extends Controller {
     this.modal = document.getElementById("correction-modal");
     // this.searchResults = document.getElementById("search-results");
     this.yggTitleElement = document.getElementById("ygg-title");
-    this.currentYggId = null;
+    // this.currentYggId = null;
   }
 
   setupEventListeners() {
@@ -72,9 +72,18 @@ export default class extends Controller {
   }
 
   openModal(event) {
-    this.currentYggId = event.currentTarget.dataset.yggId;
-    this.yggTitleElement.textContent = event.currentTarget.dataset.titre;
-    this.modal.classList.remove("hidden");
+	const yggId = event.currentTarget.dataset.yggId;
+	const titre = event.currentTarget.dataset.titre;
+  
+	if (!yggId || !titre) {
+		
+	  console.error("Attributs manquants dans le bouton 'Corriger'.");
+	  return;
+	}
+	this.modal.dataset.currentYggId = yggId;
+	console.log("Recherche TMDb pour YggMovie ID :", this.modal.dataset.currentYggId);
+	this.yggTitleElement.textContent = titre;
+	this.modal.classList.remove("hidden");
   }
 
   closeModal() {
@@ -83,8 +92,13 @@ export default class extends Controller {
   }
 
   searchTmdb(event) {
-    event.preventDefault(); // Empêche le rechargement de la page
-    console.log("Recherche TMDb déclenchée");
+	if (!this.modal.dataset.currentYggId) {
+		console.error("ID YggMovie non défini avant la sélection.");
+		return;
+	}
+    console.log("Recherche TMDb déclenchée pour YGGid ",this.modal.dataset.currentYggId);
+	event.preventDefault(); // Empêche le rechargement de la page
+
 
     const query = this.searchInputTarget.value;
     console.log("Query :", query);
@@ -137,7 +151,7 @@ export default class extends Controller {
     const tmdbId = event.currentTarget.dataset.tmdbId;
     console.log("TMDb ID sélectionné :", tmdbId);
 
-    fetch(`/ygg_movies/${this.currentYggId}/update_tmdb_id`, {
+    fetch(`/ygg_movies/${this.modal.dataset.currentYggId}/associate_tmdb`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
