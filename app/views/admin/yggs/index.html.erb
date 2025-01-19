@@ -1,0 +1,24 @@
+<h1>Gestion des Yggs non associés</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Titre</th>
+      <th>Catégorie</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @yggs.each do |ygg| %>
+      <tr>
+        <td><%= ygg.id %></td>
+        <td><%= ygg.title %></td>
+        <td><%= ygg.sub_category&.category&.name %></td>
+        <td>
+          <%= link_to 'Associer', edit_admin_ygg_path(ygg) %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

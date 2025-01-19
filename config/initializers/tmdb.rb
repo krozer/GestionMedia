@@ -1,0 +1,1 @@
+Tmdb::Api.language("fr") # Définit la langue par défaut sur le français

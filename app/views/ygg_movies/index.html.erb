@@ -1,0 +1,106 @@
+<div class="filters-accordion" data-controller="accordion">
+  <h2 class="accordion-header" data-action="click->accordion#toggle" data-accordion-target="header">
+    Filtres
+  </h2>
+  <div class="accordion-content" data-accordion-target="content">
+    <%= form_with url: ygg_movies_path, method: :get, local: true do %>
+      <input type="text" name="search" placeholder="Recherche par titre ou titre original" value="<%= params[:search] %>">
+
+      <!-- Filtres -->
+
+      <!-- Filtre Source -->
+      <div>
+        <h4>Source</h4>
+        <% YggMovie.distinct.pluck(:source).each do |source| %>
+          <label>
+            <input type="checkbox" name="filter[source][]" value="<%= source %>" <%= 'checked' if params.dig(:filter, :source)&.include?(source) %>>
+            <%= source %>
+          </label>
+        <% end %>
+      </div>
+
+      <!-- Filtre Résolution -->
+      <div>
+        <h4>Résolution</h4>
+        <% YggMovie.distinct.pluck(:resolution).each do |resolution| %>
+          <label>
+            <input type="checkbox" name="filter[resolution][]" value="<%= resolution %>" <%= 'checked' if params.dig(:filter, :resolution)&.include?(resolution) %>>
+            <%= resolution %>
+          </label>
+        <% end %>
+      </div>
+
+      <!-- Filtre Langue -->
+      <div>
+        <h4>Langue</h4>
+        <% YggMovie.distinct.pluck(:langue).each do |langue| %>
+          <label>
+            <input type="checkbox" name="filter[langue][]" value="<%= langue %>" <%= 'checked' if params.dig(:filter, :langue)&.include?(langue) %>>
+            <%= langue %>
+          </label>
+        <% end %>
+      </div>
+
+      <!-- Filtre Genre -->
+      <div>
+        <h4>Genre</h4>
+        <% Genre.all.each do |genre| %>
+          <label>
+            <input type="checkbox" name="filter[genres][]" value="<%= genre.id %>" <%= 'checked' if params.dig(:filter, :genres)&.include?(genre.id.to_s) %>>
+            <%= genre.name %>
+          </label>
+        <% end %>
+      </div>
+
+      <!-- Filtre Langue TMDb -->
+      <div>
+        <h4>Langue TMDb</h4>
+        <% TmdbMovie.distinct.pluck(:original_language).each do |lang| %>
+          <label>
+            <input type="checkbox" name="filter[tmdb_langue][]" value="<%= lang %>" <%= 'checked' if params.dig(:filter, :tmdb_langue)&.include?(lang) %>>
+            <%= lang %>
+          </label>
+        <% end %>
+      </div>
+
+      <!-- Filtres numériques -->
+      <div>
+        <label>
+          Popularité minimale :
+          <input type="number" name="filter[min_popularity]" placeholder="Popularité minimale" value="<%= params.dig(:filter, :min_popularity) %>">
+        </label>
+      </div>
+
+      <div>
+        <label>
+          Vote moyen minimal :
+          <input type="number" name="filter[min_vote]" placeholder="Vote moyen minimal" value="<%= params.dig(:filter, :min_vote) %>">
+        </label>
+      </div>
+
+      <button type="submit">Appliquer</button>
+    <% end %>
+    <%= link_to "Réinitialiser les filtres", ygg_movies_path(reset: true), class: "reset-filters-button" %>
+  </div>
+</div>
+
+<div data-controller="movie-modal" class="movies-grid">
+<% @ygg_movies.each do |ygg_movie| %>
+  <div class="movie-card" data-tmdb-id="<%= ygg_movie.id %>">
+	<img src="https://media.themoviedb.org/t/p/w220_and_h330_face<%= ygg_movie.poster_path %>" alt="<%= ygg_movie.title %>" />
+	<h3 data-text="<%= ygg_movie.title %>">
+  <%= ygg_movie.title %> (<%= ygg_movie.release_date&.year %>)
+</h3>
+  </div>
+<% end %>
+</div>
+
+<%= paginate @ygg_movies %>
+
+<div id="movie-modal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <!-- Le contenu sera ajouté dynamiquement -->
+  </div>
+</div>
+

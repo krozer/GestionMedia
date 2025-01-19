@@ -1,0 +1,37 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  url: MyString
+  sub_category: 1
+  size: MyString
+  added_date: 2025-01-16 07:06:23
+  tmdb_tv_id: 1
+  annee: 1
+  saison: 1
+  episode: 1
+  source: MyString
+  resolution: MyString
+  langue: MyString
+  codec: MyString
+  audio: MyString
+  canaux: MyString
+  titre: MyString
+
+two:
+  name: MyString
+  url: MyString
+  sub_category: 1
+  size: MyString
+  added_date: 2025-01-16 07:06:23
+  tmdb_tv_id: 1
+  annee: 1
+  saison: 1
+  episode: 1
+  source: MyString
+  resolution: MyString
+  langue: MyString
+  codec: MyString
+  audio: MyString
+  canaux: MyString
+  titre: MyString

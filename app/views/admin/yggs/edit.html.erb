@@ -1,0 +1,37 @@
+<h1>Associer Ygg à TMDb</h1>
+
+<p>Titre : <%= @ygg.title %></p>
+
+<% if @tmdb_results.any? %>
+  <form action="<%= admin_ygg_path(@ygg) %>" method="post">
+    <input type="hidden" name="_method" value="patch">
+    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Sélectionner</th>
+          <th>Titre</th>
+          <th>Année</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @tmdb_results.each do |result| %>
+          <tr>
+            <td>
+              <input type="radio" name="ygg[tmdb_id]" value="<%= result.id %>">
+            </td>
+            <td><%= result.title %></td>
+            <td><%= result.release_date %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <button type="submit">Associer</button>
+  </form>
+<% else %>
+  <p>Aucune correspondance trouvée.</p>
+<% end %>
+
+<%= link_to 'Retour', admin_yggs_path %>

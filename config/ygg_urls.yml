@@ -1,0 +1,9 @@
+urls:
+  - type: serie
+    suburl: name=&description=&file=&uploader=&category=2145&sub_category=2184&do=search
+  - type: serie
+    suburl: name=&description=&file=&uploader=&category=2145&sub_category=2179&do=search
+  - type: film
+    suburl: name=&description=&file=&uploader=&category=2145&sub_category=2183&do=search
+  - type: film
+    suburl: name=&description=&file=&uploader=&category=2145&sub_category=2178&do=search

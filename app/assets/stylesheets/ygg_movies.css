@@ -1,0 +1,210 @@
+body {
+	background: linear-gradient(180deg, #1b1b2f, #162447);
+	color: #fff;
+	font-family: 'Orbitron', sans-serif;
+	margin: 0;
+	padding: 0;
+  }
+  
+  .container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+  }
+  
+  header {
+	text-align: center;
+	margin-bottom: 30px;
+  }
+  
+  header h1 {
+	font-size: 3rem;
+	color: #ff79c6;
+	text-shadow: 0 0 10px #ff79c6, 0 0 20px #ff79c6;
+  }
+  
+  .search-form {
+	margin-top: 20px;
+  }
+  
+  .search-form input {
+	padding: 10px;
+	border: 2px solid #ff79c6;
+	background-color: transparent;
+	color: #fff;
+	font-size: 1rem;
+  }
+  
+  .search-form button {
+	padding: 10px 20px;
+	border: none;
+	background-color: #ff79c6;
+	color: #fff;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background-color 0.3s;
+  }
+  
+  .search-form button:hover {
+	background-color: #ff5dc6;
+  }
+  
+  .movies-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 20px;
+	justify-content: center; /* Centre le contenu si une seule carte */
+  }
+  
+  .movie-card {
+	max-width: 220px; /* Limite la largeur des cartes */
+	margin: 0 auto; /* Centre chaque carte dans sa colonne */
+	background: rgba(255, 255, 255, 0.1);
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	border-radius: 10px;
+	padding: 10px;
+	text-align: center;
+	transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .movie-card img {
+	width: 100%; /* S'assure que l'image respecte la largeur du conteneur */
+	height: auto;
+	border-radius: 5px;
+	box-shadow: 0 0 10px #000;
+  }
+  
+  .movie-card h3 {
+	font-size: 1.2rem;
+	color: #ff79c6;
+	text-shadow: 0 0 5px #ff79c6, 0 0 10px #ff79c6;
+  }
+  
+  .movie-card:hover {
+	transform: scale(1.05);
+	box-shadow: 0 0 20px #ff79c6;
+  }
+  .modal {
+	position: fixed;
+	z-index: 1000;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .modal .modal-content {
+	background-color: #1b1b2f;
+	margin: 5% auto;
+	padding: 20px;
+	border: 1px solid #888;
+	border-radius: 10px;
+	width: 80%;
+	max-width: 900px;
+	color: #fff;
+	overflow: hidden; /* Empêche le débordement du contenu */
+	box-sizing: border-box; /* Inclut les bordures et marges dans la largeur totale */
+  }
+  .modal .close-button {
+	color: #fff;
+	float: right;
+	font-size: 28px;
+	font-weight: bold;
+	cursor: pointer;
+  }
+  
+  .modal .close-button:hover,
+  .modal .close-button:focus {
+	color: #ff79c6;
+	text-decoration: none;
+  }
+  
+
+  .modal .movie-details {
+	display: flex; /* Utilise flexbox pour organiser les éléments */
+	align-items: flex-start; /* Aligne les éléments en haut */
+	gap: 20px; /* Espace entre l'image et le texte */
+  }
+  
+  .modal .movie-details img {
+	max-width: 300px; /* Limite la largeur de l'image */
+	height: auto; /* Conserve les proportions */
+	border-radius: 5px; /* Ajoute un léger arrondi */
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Ajoute une ombre discrète */
+  }
+  
+  .modal .movie-details .text-content {
+	flex: 1; /* Permet au texte de prendre toute la place restante */
+  }
+  
+  .modal .movie-details h2 {
+	margin-top: 0; /* Supprime l'espace inutile au-dessus du titre */
+  }
+  
+  .modal .movie-details p {
+	margin: 10px 0; /* Ajoute un peu d'espace entre les paragraphes */
+  }
+  
+  .modal .movie-details strong {
+	color: #ff79c6; /* Accentue les sous-titres avec une couleur visible */
+  }
+
+  
+  .hidden {
+	display: none !important;
+  }
+	
+  .filters-accordion {
+	margin-bottom: 20px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 10px;
+	overflow: hidden;
+	background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .accordion-header {
+	background-color: #ff79c6;
+	color: #fff;
+	padding: 10px;
+	cursor: pointer;
+	font-size: 1.5rem;
+	text-align: center;
+	transition: background-color 0.3s;
+  }
+  
+  .accordion-header:hover {
+	background-color: #ff5dc6;
+  }
+  
+  .accordion-content {
+	max-height: 0;
+	overflow: hidden;
+	transition: max-height 0.5s ease-out;
+	padding: 0 15px;
+  }
+  
+  .accordion-content.open {
+	max-height: 1000px; /* Large valeur pour afficher tout le contenu */
+	transition: max-height 0.5s ease-in;
+	padding: 15px;
+  }
+  .ygg-table .highlight-filter {
+	font-weight: bold;
+	background-color: rgba(0, 128, 0, 0.2); /* Vert clair */
+	text-decoration: underline;
+  }
+  #correction-modal {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.8);
+	z-index: 1000;
+  }  

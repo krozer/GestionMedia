@@ -1,0 +1,27 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 1
+  name: MyString
+  original_name: MyString
+  first_air_date: 2025-01-16
+  origin_country: MyString
+  backdrop_path: MyString
+  poster_path: MyString
+  overview: MyText
+  popularity: 1.5
+  vote_average: 1.5
+  vote_count: 1
+
+two:
+  id: 1
+  name: MyString
+  original_name: MyString
+  first_air_date: 2025-01-16
+  origin_country: MyString
+  backdrop_path: MyString
+  poster_path: MyString
+  overview: MyText
+  popularity: 1.5
+  vote_average: 1.5
+  vote_count: 1
