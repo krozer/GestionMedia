@@ -137,47 +137,22 @@ class YggMovie < ApplicationRecord
   def search_tmdb
     return nil unless titre.present?
   
-    # Rechercher une entrée TMDB existante
+    # Rechercher une entrée TMDb existante
     existing_entry = TmdbMovie.find_by(title: titre, id: tmdb_id)
     return existing_entry if existing_entry
   
-    # Effectuer la recherche via l'API TMDB
+    # Effectuer la recherche via l'API TMDb
     search = Tmdb::Search.movie(titre)
     results = search.results
   
+    return nil if results.blank?
+  
     # Calculer les scores de pertinence pour chaque résultat
     scored_results = results.map do |result|
-      # Calculer la similarité avec `title` et `original_title`
-      title_similarity = similarity(titre, result.title)
-      original_title_similarity = similarity(titre, result.original_title || '')
-  
-      # Prendre le meilleur score entre `title` et `original_title`
-      best_title_similarity = [title_similarity, original_title_similarity].max
-  
-      # Calculer la proximité de date
-      date_proximity = release_date_proximity(result.release_date, annee)
-  
-      # Calculer le score de popularité (normalisé entre 0 et 1)
-      popularity_score = result.popularity.to_f / 100 # Suppose une popularité max de 100 pour normalisation
-      popularity_score = 1.0 if popularity_score > 1.0
-  
-      # Calculer le score des votes (normalisé entre 0 et 1 pour un maximum arbitraire de 10 000 votes)
-      vote_score = result.vote_count.to_f / 10_000
-      vote_score = 1.0 if vote_score > 1.0
-  
-      # Bonus pour la présence de `backdrop_path` et `poster_path`
-      media_bonus = 0
-      media_bonus += 0.1 if result.backdrop_path.present?
-      media_bonus += 0.1 if result.poster_path.present?
-  
-      # Calcul du score final avec pondération
-      score = best_title_similarity * 0.5 +
-              date_proximity * 0.2 +
-              popularity_score * 0.15 +
-              vote_score * 0.1 +
-              media_bonus
-  
-      { result: result, score: score }
+      {
+        result: result,
+        score: calculate_match_score(result)
+      }
     end
   
     # Trier les résultats par score décroissant
@@ -191,88 +166,87 @@ class YggMovie < ApplicationRecord
   
     best_match = sorted_results.first
   
-    if best_match && best_match[:score] > 0.5 # Seuil minimal de confiance
+    if best_match[:score] > 0.8  || (sorted_results.size == 1 && best_match[:score] > 0.7) # Seuil minimal de confiance
       match_result = best_match[:result]
   
-      # Vérifier ou créer une entrée TMDB
-      tmdb_entry = TmdbMovie.find_or_initialize_by(id: match_result.id)
-      if tmdb_entry.new_record?
-        tmdb_entry.update!(
-          title: match_result.title,
-          release_date: match_result.release_date,
-          overview: match_result.overview,
-          adult: match_result.adult,
-          backdrop_path: match_result.backdrop_path,
-          original_language: match_result.original_language,
-          original_title: match_result.original_title,
-          popularity: match_result.popularity,
-          poster_path: match_result.poster_path,
-          video: match_result.respond_to?(:video) ? match_result.video : nil,
-          vote_average: match_result.vote_average,
-          vote_count: match_result.vote_count
-        )
-        # Mettre à jour les genres
-        if match_result.genre_ids.present?
-          Rails.logger.info "Genres présent : #{match_result.genre_ids} (TMDb ID: #{match_result.id})"  
-          match_result.genre_ids.each do |genre_id|
-            genre = Genre.find_or_create_by!(id: genre_id)
-            GenresTmdbMovie.find_or_create_by!(tmdb_movie: tmdb_entry, genre: genre)
-          end
-        end
-        Rails.logger.info "Nouvelle entrée TMDb créée : #{match_result.title} (TMDb ID: #{match_result.id})"
-      end
+      # Vérifier ou créer une entrée TMDb
+      tmdb_entry = create_or_update_tmdb_entry(match_result)
   
       # Mettre à jour l'enregistrement YGG avec l'ID TMDb
       self.update!(tmdb_id: tmdb_entry.id)
-      Rails.logger.info "YggMovie ID #{id} associé à TMDb ID #{tmdb_entry.id}."
   
+      Rails.logger.info "YggMovie ID #{id} associé à TMDb ID #{tmdb_entry.id}."
       return tmdb_entry
     else
-      Rails.logger.info "Aucune correspondance suffisamment pertinente pour '#{titre}'."
+      Rails.logger.info "Aucune correspondance suffisamment pertinente pour '#{titre}' : score '#{best_match[:score]}'."
       nil
     end
   end
   
-  def associate_tmdb(tmdb_id)
-    tmdb_entry = TmdbMovie.find_or_initialize_by(id: tmdb_id)
+  def calculate_match_score(result)
+    # Calculer la similarité avec `title` et `original_title`
+    title_similarity = similarity(titre, result.title)
+    original_title_similarity = similarity(titre, result.original_title || '')
+  
+    # Prendre le meilleur score entre `title` et `original_title`
+    best_title_similarity = [title_similarity, original_title_similarity].max
+  
+    # Calculer la proximité de date
+    date_proximity = release_date_proximity(result.release_date, annee)
+  
+    # Calculer le score de popularité (normalisé entre 0 et 1)
+    popularity_score = result.popularity.to_f / 100
+    popularity_score = 1.0 if popularity_score > 1.0
+  
+    # Calculer le score des votes
+    vote_score = result.vote_count.to_f / 10_000
+    vote_score = 1.0 if vote_score > 1.0
+  
+    # Bonus pour la présence de `backdrop_path` et `poster_path`
+    media_bonus = 0
+    media_bonus += 0.1 if result.backdrop_path.present?
+    media_bonus += 0.1 if result.poster_path.present?
+  
+    # Calcul du score final avec pondération
+    best_title_similarity * 0.5 +
+      date_proximity * 0.2 +
+      popularity_score * 0.15 +
+      vote_score * 0.1 +
+      media_bonus
+  end
+  
 
+  def create_or_update_tmdb_entry(result)
+    tmdb_entry = TmdbMovie.find_or_initialize_by(id: result.id)
     if tmdb_entry.new_record?
-      details = Tmdb::Movie.detail(tmdb_id, language: "fr")
-
       tmdb_entry.update!(
-        title: details.title,
-        release_date: details.release_date,
-        overview: details.overview,
-        adult: details.adult,
-        backdrop_path: details.backdrop_path,
-        original_language: details.original_language,
-        original_title: details.original_title,
-        popularity: details.popularity,
-        poster_path: details.poster_path,
-        video: details.respond_to?(:video) ? details.video : nil,
-        vote_average: details.vote_average,
-        vote_count: details.vote_count
+        title: result.title,
+        release_date: result.release_date,
+        overview: result.overview,
+        adult: result.adult,
+        backdrop_path: result.backdrop_path,
+        original_language: result.original_language,
+        original_title: result.original_title,
+        popularity: result.popularity,
+        poster_path: result.poster_path,
+        video: result.respond_to?(:video) ? result.video : nil,
+        vote_average: result.vote_average,
+        vote_count: result.vote_count
       )
-
-      # Met à jour les genres associés
-      if details.genre_ids.present?
-        details.genre_ids.each do |genre_id|
+  
+      # Mettre à jour les genres
+      if result.genre_ids.present?
+        result.genre_ids.each do |genre_id|
           genre = Genre.find_or_create_by!(id: genre_id)
           GenresTmdbMovie.find_or_create_by!(tmdb_movie: tmdb_entry, genre: genre)
         end
       end
+  
+      Rails.logger.info "Nouvelle entrée TMDb créée : #{result.title} (TMDb ID: #{result.id})"
     end
-
-    self.update!(tmdb_id: tmdb_entry.id)
-    Rails.logger.info "YggMovie ID #{id} associé à TMDb ID #{tmdb_entry.id}."
     tmdb_entry
-  rescue Tmdb::Error => e
-    Rails.logger.error "Erreur TMDb : #{e.message}"
-    raise
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error "Erreur de validation ActiveRecord : #{e.message}"
-    raise
   end
+  
 
   def self.search_all_tmdb_id
     where(tmdb_id: nil).find_each do |ygg_movie|

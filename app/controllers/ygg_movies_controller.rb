@@ -42,7 +42,7 @@ def associate_tmdb
   tmdb_id = params[:tmdb_id]
 
   begin
-    ygg_movie.associate_tmdb(tmdb_id)
+    ygg_movie.create_or_update_tmdb_entry(tmdb_id)
     render json: { message: "L'association a été mise à jour avec succès !" }, status: :ok
   rescue StandardError => e
     render json: { error: "Erreur : #{e.message}" }, status: :unprocessable_entity
