@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_16_113614) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_21_103905) do
   create_table "categories", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", null: false
@@ -83,6 +83,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_16_113614) do
     t.boolean "video"
     t.float "vote_average"
     t.integer "vote_count"
+    t.boolean "watchlist", default: false
   end
 
   create_table "tmdb_tvs", force: :cascade do |t|
@@ -98,6 +99,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_16_113614) do
     t.integer "vote_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "watchlist", default: false
+  end
+
+  create_table "tmdb_watchlists", force: :cascade do |t|
+    t.integer "tmdb_id"
+    t.string "media_type"
+    t.string "title"
+    t.date "release_date"
+    t.text "overview"
+    t.string "poster_path"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "tmdbs", force: :cascade do |t|
@@ -107,6 +120,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_16_113614) do
     t.string "poster_path"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "ygg_movies", force: :cascade do |t|
+    t.string "name"
+    t.string "url"
+    t.integer "sub_category"
+    t.integer "size"
+    t.datetime "added_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "tmdb_id"
+    t.integer "annee"
+    t.integer "saison"
+    t.integer "episode"
+    t.string "source"
+    t.string "resolution"
+    t.string "langue"
+    t.string "codec"
+    t.string "audio"
+    t.string "canaux"
+    t.string "titre"
   end
 
   create_table "ygg_tvs", force: :cascade do |t|
@@ -131,36 +165,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_16_113614) do
     t.index ["tmdb_tv_id"], name: "index_ygg_tvs_on_tmdb_tv_id"
   end
 
-  create_table "yggs_movies", id: false, force: :cascade do |t|
-    t.integer "id", null: false
-    t.string "name"
-    t.string "url"
-    t.integer "sub_category"
-    t.integer "size"
-    t.datetime "added_date"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "tmdb_id"
-    t.integer "annee"
-    t.integer "saison"
-    t.integer "episode"
-    t.string "source"
-    t.string "resolution"
-    t.string "langue"
-    t.string "codec"
-    t.string "audio"
-    t.string "canaux"
-    t.string "titre"
-  end
-
   add_foreign_key "genres_tmdb_movies", "genres"
   add_foreign_key "genres_tmdb_tvs", "genres"
   add_foreign_key "genres_tmdb_tvs", "tmdb_tvs"
   add_foreign_key "sub_categories", "categories"
   add_foreign_key "tags_ygg_movies", "tags"
-  add_foreign_key "tags_ygg_movies", "yggs_movies", column: "ygg_movie_id"
+  add_foreign_key "tags_ygg_movies", "ygg_movies"
   add_foreign_key "tags_ygg_tvs", "tags"
   add_foreign_key "tags_ygg_tvs", "ygg_tvs"
+  add_foreign_key "ygg_movies", "tmdb_movies", column: "tmdb_id"
   add_foreign_key "ygg_tvs", "tmdb_tvs"
-  add_foreign_key "yggs_movies", "tmdb_movies", column: "tmdb_id"
 end

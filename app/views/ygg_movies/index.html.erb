@@ -62,7 +62,13 @@
           </label>
         <% end %>
       </div>
-
+      <!-- Filtre Watchlist -->
+      <div>
+        <label>
+          <input type="checkbox" name="filter_watchlist" value="1" <%= 'checked' if params[:filter_watchlist] == "1" %>>
+          Afficher uniquement les éléments de ma watchlist
+        </label>
+      </div>
       <!-- Filtres numériques -->
       <div>
         <label>
@@ -85,22 +91,30 @@
 </div>
 
 <div data-controller="movie-modal" class="movies-grid">
-<% @ygg_movies.each do |ygg_movie| %>
-  <div class="movie-card" data-tmdb-id="<%= ygg_movie.id %>">
-	<img src="https://media.themoviedb.org/t/p/w220_and_h330_face<%= ygg_movie.poster_path %>" alt="<%= ygg_movie.title %>" />
-	<h3 data-text="<%= ygg_movie.title %>">
-  <%= ygg_movie.title %> (<%= ygg_movie.release_date&.year %>)
-</h3>
-  </div>
-<% end %>
-</div>
+  <% @ygg_movies.each do |ygg_movie| %>
+    <div 
+      class="movie-card" 
+      data-tmdb-id="<%= ygg_movie.id %>" 
+      data-action="click->movie-modal#openModal"
+      data-movie-modal-target="card">
+      <div class="poster-container">
+        <img src="https://media.themoviedb.org/t/p/w220_and_h330_face<%= ygg_movie.poster_path %>" alt="<%= ygg_movie.title %>" />
+        <div class="watchlist-ribbon <%= ygg_movie.watchlist ? 'watchlist-active' : 'watchlist-inactive' %>" data-media-id="<%= ygg_movie.id %>" data-media-type="movie" data-action="click->movie-modal#toggleWatchlist">
+          ★
+        </div>
+      </div>
+      <h3 data-text="<%= ygg_movie.title %>">
+        <%= ygg_movie.title %> (<%= ygg_movie.release_date&.year %>)
+      </h3>
+    </div>
+  <% end %>
 
+  <!-- Déplace la modal ici, dans la portée de "movie-modal" -->
+  <div id="movie-modal" class="modal hidden" data-movie-modal-target="modal">
+  
+    <div class="modal-content">
+      <!-- Le contenu sera ajouté dynamiquement -->
+    </div>
+  </div>
+</div>
 <%= paginate @ygg_movies %>
-
-<div id="movie-modal" class="modal hidden">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <!-- Le contenu sera ajouté dynamiquement -->
-  </div>
-</div>
-

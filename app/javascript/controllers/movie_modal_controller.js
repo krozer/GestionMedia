@@ -1,129 +1,93 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = [
-    "correctionModal",
-    "yggTitle",
-    "tmdbResults",
-    "searchInput",
-  ];
+  static targets = ["modal", "card","tmdbResults","correctionModal","searchInput"];
 
   connect() {
-    console.log("Movie Modal + Correction Controller connecté");
-    this.setupEventListeners();
-    this.modal = document.getElementById("correction-modal");
-    // this.searchResults = document.getElementById("search-results");
-    this.yggTitleElement = document.getElementById("ygg-title");
-    // this.currentYggId = null;
-  }
-
-  setupEventListeners() {
-    const movieCards = document.querySelectorAll(".movie-card");
-    const modal = document.querySelector("#movie-modal");
-
-    if (!modal) {
-      console.error("Modal element not found");
-      return;
-    }
-
-    const modalContent = modal.querySelector(".modal-content");
-    const closeButton = modal.querySelector(".close-button");
-
-    if (!modalContent || !closeButton) {
-      console.error("Modal sub-elements not found");
-      return;
-    }
-
-    movieCards.forEach((card) => {
-      card.addEventListener("click", () => {
-        console.log("Carte cliquée :", card);
-        const tmdbId = card.getAttribute("data-tmdb-id");
-        console.log("TMDB ID :", tmdbId);
-
-        // Récupérer les paramètres des filtres actuels
-        const searchParams = new URLSearchParams(window.location.search);
-
-        // Ajouter les filtres actuels à l'URL de la requête
-        const fetchUrl = `/ygg_movies/${tmdbId}/details?${searchParams.toString()}`;
-        console.log("URL de fetch avec filtres :", fetchUrl);
-
-        fetch(fetchUrl)
-          .then((response) => response.text())
-          .then((html) => {
-            console.log("HTML reçu :", html);
-            modalContent.innerHTML = html; // Insère le contenu dans le modal
-            console.log("Contenu après injection :", modalContent.innerHTML);
-            modal.classList.remove("hidden"); // Rend le modal visible
-            console.log("Classe 'hidden' supprimée :", modal.classList);
-          })
-          .catch((error) => console.error("Erreur lors du fetch :", error));
-      });
-    });
-
-    closeButton.addEventListener("click", () => {
-      modal.classList.add("hidden");
-    });
-
-    window.addEventListener("click", (event) => {
-      if (event.target === modal) {
-        modal.classList.add("hidden");
-      }
-    });
+    console.log("MovieModalController connecté !");
   }
 
   openModal(event) {
-	const yggId = event.currentTarget.dataset.yggId;
-	const titre = event.currentTarget.dataset.titre;
+    const card = event.currentTarget; // La carte cliquée
+    const tmdbId = card.getAttribute("data-tmdb-id"); // Récupère l'ID TMDb
+    console.log("Carte cliquée :", card);
+    console.log("TMDB ID :", tmdbId);
   
-	if (!yggId || !titre) {
-		
-	  console.error("Attributs manquants dans le bouton 'Corriger'.");
-	  return;
-	}
-	this.modal.dataset.currentYggId = yggId;
-	console.log("Recherche TMDb pour YggMovie ID :", this.modal.dataset.currentYggId);
-	this.yggTitleElement.textContent = titre;
-	this.modal.classList.remove("hidden");
+    // Prépare l'URL pour récupérer le contenu dynamique
+    const searchParams = new URLSearchParams(window.location.search);
+    const fetchUrl = `/ygg_movies/${tmdbId}/details?${searchParams.toString()}`;
+    console.log("URL de fetch avec filtres :", fetchUrl);
+  
+    // Récupère la modal et son contenu
+    const modal = this.modalTarget;
+    const modalContent = modal.querySelector(".modal-content");
+  
+    // Effectue la requête pour récupérer le contenu
+    fetch(fetchUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Erreur réseau : ${response.status}`);
+        }
+        return response.text();
+      })
+      .then((html) => {
+        // console.log("HTML reçu :", html);
+        modalContent.innerHTML = html; // Injecte le contenu dans la modal
+        modal.classList.remove("hidden"); // Affiche la modal
+      })
+      .catch((error) => console.error("Erreur lors du fetch :", error));
   }
 
   closeModal() {
-    this.modal.classList.add("hidden");
-    this.tmdbResultsTarget.innerHTML = "";
+    // Cache la modal
+    this.modalTarget.classList.add("hidden");
   }
 
-  searchTmdb(event) {
-	if (!this.modal.dataset.currentYggId) {
-		console.error("ID YggMovie non défini avant la sélection.");
-		return;
-	}
-    console.log("Recherche TMDb déclenchée pour YGGid ",this.modal.dataset.currentYggId);
+
+searchTmdb(event) {
+  const button = event.currentTarget;
+  const yggId = button.getAttribute("data-ygg-id");
+  const yggTitre = button.getAttribute("data-ygg-titre");
+  const query = this.searchInputTarget.value.trim();
+  let search=query
+  if (!query) {
+    search=yggTitre
+  }
+  if (!yggId) {
+    console.error("ID YggMovie non trouvé sur le bouton.");
+    return;
+  }
+  const searchButton = this.correctionModalTarget.querySelector(".search-button");
+  searchButton.dataset.yggId = yggId;
+
+  console.log("Recherche TMDb déclenchée pour YGGid ",yggId);
 	event.preventDefault(); // Empêche le rechargement de la page
 
 
-    const query = this.searchInputTarget.value;
-    console.log("Query :", query);
+    // const query = this.searchInputTarget.value;
+    console.log("Query :", yggTitre);
 
-    if (query.trim() === "") {
+    if (search.trim() === "") {
       console.warn("La recherche est vide");
       return;
     }
 
     // Effectuer une requête à l'API TMDb pour rechercher les films
-    fetch(`/tmdb_search?query=${encodeURIComponent(query)}`)
+    fetch(`/tmdb_search?query=${encodeURIComponent(search)}`)
       .then((response) => response.json())
       .then((results) => {
         console.log("Résultats TMDb :", results);
-        this.displayResults(results);
+        this.displayResults(yggId,results);
       })
       .catch((error) => {
         console.error("Erreur lors de la recherche TMDb :", error);
       });
   }
 
-  displayResults(results) {
+  displayResults(yggId,results) {
     const resultsContainer = this.tmdbResultsTarget;
     resultsContainer.innerHTML = ""; // Réinitialise les résultats précédents
-
+    this.correctionModalTarget.classList.remove("hidden");
     if (results.length === 0) {
       resultsContainer.innerHTML = "<p>Aucun résultat trouvé.</p>";
       return;
@@ -137,6 +101,7 @@ export default class extends Controller {
           <button 
             class="select-button" 
             data-action="click->movie-modal#selectTmdb"
+            data-ygg-id="${yggId}"
             data-tmdb-id="${result.id}"
           >
             Sélectionner
@@ -148,10 +113,13 @@ export default class extends Controller {
   }
 
   selectTmdb(event) {
-    const tmdbId = event.currentTarget.dataset.tmdbId;
+    const button = event.currentTarget;
+    const yggId = button.getAttribute("data-ygg-id");
+    const tmdbId = button.getAttribute("data-tmdb-id");
+    // const tmdbId = event.currentTarget.dataset.tmdbId;
     console.log("TMDb ID sélectionné :", tmdbId);
 
-    fetch(`/ygg_movies/${this.modal.dataset.currentYggId}/associate_tmdb`, {
+    fetch(`/ygg_movies/${yggId}/associate_tmdb`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -171,6 +139,37 @@ export default class extends Controller {
       })
       .catch((error) => {
         console.error("Erreur réseau :", error);
+      });
+  }
+  toggleWatchlist(event) {
+    event.stopPropagation();
+    const badge = event.currentTarget;
+    const mediaId = badge.dataset.mediaId;
+    const mediaType = badge.dataset.mediaType;
+    const inWatchlist = badge.classList.contains("watchlist-active");
+    
+    // const endpoint = inWatchlist 
+    //   ? `/tmdb/watchlist/remove` 
+    //   : `/tmdb/watchlist/add`;
+    const endpoint = 'watchlist/toggle'
+    fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+      },
+      body: JSON.stringify({ media_id: mediaId, media_type: mediaType }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          badge.classList.toggle("watchlist-active", !inWatchlist);
+          console.log(`Watchlist mis à jour : ${!inWatchlist ? "Ajouté" : "Retiré"}`);
+        } else {
+          console.error("Échec de la mise à jour de la Watchlist");
+        }
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la requête :", error);
       });
   }
 }

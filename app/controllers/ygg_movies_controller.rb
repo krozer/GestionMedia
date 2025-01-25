@@ -2,6 +2,7 @@ class YggMoviesController < ApplicationController
   def index
     @search_query = params[:search].presence || ""
     @filter_params = params[:filter] || {}
+    @filter_watchlist = params[:filter_watchlist] == "1"
 
     # Subquery pour trouver le premier YggMovie pour chaque tmdb_id
     subquery = YggMovie.select('tmdb_id, MIN(added_date) AS earliest_date').group(:tmdb_id)
@@ -16,6 +17,11 @@ class YggMoviesController < ApplicationController
     .distinct
     .page(params[:page])
     .per(33)
+
+  # Filtrage par watchlist
+  if params[:filter_watchlist] == "1"
+    @ygg_movies = @ygg_movies.where(tmdb_id: TmdbMovie.where(watchlist: true).pluck(:id))
+  end
 
     # Appliquer les filtres
     @ygg_movies = apply_filters(@ygg_movies, @filter_params)
@@ -40,9 +46,14 @@ end
 def associate_tmdb
   ygg_movie = YggMovie.find(params[:id])
   tmdb_id = params[:tmdb_id]
-
+  existing_entry = TmdbMovie.find_by(id: tmdb_id)
+  if ! existing_entry.present?
+    existing_entry = TmdbMovie.update_tmdb_entry(tmdb_id)
+  end
   begin
-    ygg_movie.create_or_update_tmdb_entry(tmdb_id)
+    # ygg_movie.create_or_update_tmdb_entry(tmdb_id)
+    ygg_movie.tmdb_id = existing_entry.id
+    ygg_movie.save
     render json: { message: "L'association a été mise à jour avec succès !" }, status: :ok
   rescue StandardError => e
     render json: { error: "Erreur : #{e.message}" }, status: :unprocessable_entity

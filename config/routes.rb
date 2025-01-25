@@ -10,6 +10,8 @@ Rails.application.routes.draw do
 
   # Route pour la recherche TMDb
   get :tmdb_search, to: "tmdb_movies#search"
+  
+  post 'watchlist/toggle', to: 'watchlists#toggle'
 
   # Namespace Admin
   namespace :admin do

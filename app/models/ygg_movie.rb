@@ -93,6 +93,7 @@ class YggMovie < ApplicationRecord
 
   def self.update_tmdb_entry(entry_id)
     begin
+      puts "ID #{entry_id}"
       # Récupérer les détails (film ou série)
       details=Tmdb::Movie.detail(entry_id, language: "fr")
 
@@ -143,6 +144,7 @@ class YggMovie < ApplicationRecord
   
     # Effectuer la recherche via l'API TMDb
     search = Tmdb::Search.movie(titre)
+    sleep(0.5)
     results = search.results
   
     return nil if results.blank?
@@ -166,11 +168,11 @@ class YggMovie < ApplicationRecord
   
     best_match = sorted_results.first
   
-    if best_match[:score] > 0.8  || (sorted_results.size == 1 && best_match[:score] > 0.7) # Seuil minimal de confiance
+    if best_match[:score] > 0.77  || (sorted_results.size == 1 && best_match[:score] > 0.7) # Seuil minimal de confiance
       match_result = best_match[:result]
   
       # Vérifier ou créer une entrée TMDb
-      tmdb_entry = create_or_update_tmdb_entry(match_result)
+      tmdb_entry = TmdbMovie.create_or_update_tmdb_entry(match_result)
   
       # Mettre à jour l'enregistrement YGG avec l'ID TMDb
       self.update!(tmdb_id: tmdb_entry.id)
@@ -214,39 +216,6 @@ class YggMovie < ApplicationRecord
       vote_score * 0.1 +
       media_bonus
   end
-  
-
-  def create_or_update_tmdb_entry(result)
-    tmdb_entry = TmdbMovie.find_or_initialize_by(id: result.id)
-    if tmdb_entry.new_record?
-      tmdb_entry.update!(
-        title: result.title,
-        release_date: result.release_date,
-        overview: result.overview,
-        adult: result.adult,
-        backdrop_path: result.backdrop_path,
-        original_language: result.original_language,
-        original_title: result.original_title,
-        popularity: result.popularity,
-        poster_path: result.poster_path,
-        video: result.respond_to?(:video) ? result.video : nil,
-        vote_average: result.vote_average,
-        vote_count: result.vote_count
-      )
-  
-      # Mettre à jour les genres
-      if result.genre_ids.present?
-        result.genre_ids.each do |genre_id|
-          genre = Genre.find_or_create_by!(id: genre_id)
-          GenresTmdbMovie.find_or_create_by!(tmdb_movie: tmdb_entry, genre: genre)
-        end
-      end
-  
-      Rails.logger.info "Nouvelle entrée TMDb créée : #{result.title} (TMDb ID: #{result.id})"
-    end
-    tmdb_entry
-  end
-  
 
   def self.search_all_tmdb_id
     where(tmdb_id: nil).find_each do |ygg_movie|

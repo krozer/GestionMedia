@@ -1,3 +1,5 @@
+<!-- app\views\ygg_movies\_movie_details.html.erb -->
+<button class="close-button" data-action="click->movie-modal#closeModal">×</button>
 <div class="movie-details">
   <img src="https://media.themoviedb.org/t/p/w500/<%= @tmdb_movie.poster_path %>" alt="<%= @tmdb_movie.title %>">
   <div class="text-content">
@@ -9,7 +11,6 @@
     <p><strong>Genres :</strong> <%= @tmdb_movie.genres.map(&:name).join(", ") %></p>
   </div>
 </div>
-
     <h3>YggMovies associés</h3>
     <table class="ygg-table">
       <thead>
@@ -33,10 +34,9 @@
         <td>
 			<button 
 			class="correct-button" 
-			data-controller="movie-modal"
-			data-action="click->movie-modal#openModal"
+			data-action="click->movie-modal#searchTmdb"
 			data-ygg-id="<%= ygg_movie.id %>" 
-			data-titre="<%= ygg_movie.titre %>"
+			data-ygg-titre="<%= ygg_movie.titre %>"
 			>
 			Corriger
 			</button>
@@ -45,16 +45,15 @@
         <% end %>
       </tbody>
     </table>
-	<!-- Modal pour la correction -->
-	<div id="correction-modal" class="hidden" data-controller="movie-modal" data-movie-modal-target="correctionModal">
-	<div class="modal-content">
-	  <button id="close-modal" class="close-button" data-action="click->movie-modal#closeModal">×</button>
-	  <h3>Corriger l'association pour : <span id="ygg-title" data-movie-modal-target="yggTitle"></span></h3>
-	  <input type="text" id="search-tmdb" placeholder="Rechercher sur TMDb" data-movie-modal-target="searchInput">
-	  <button 
-		class="search-button" 
-		data-action="click->movie-modal#searchTmdb"
-	  >Rechercher</button>
-	  <div id="tmdb-results" data-movie-modal-target="tmdbResults"></div>
-	</div>
+	
+  <!-- Modal de correction -->
+  <div id="correction-modal" class="hidden" data-movie-modal-target="correctionModal">
+    <div class="modal-content">
+      <button id="close-modal" class="close-button" data-action="click->movie-modal#closeModal">×</button>
+      <h3>Corriger l'association pour : <span id="ygg-title" data-movie-modal-target="yggTitle"></span></h3>
+      <input type="text" id="search-tmdb" placeholder="Rechercher sur TMDb" data-movie-modal-target="searchInput">
+      <button class="search-button" data-action="click->movie-modal#searchTmdb">Rechercher</button>
+      <div id="tmdb-results" data-movie-modal-target="tmdbResults"></div>
+    </div>
   </div>
+</div>

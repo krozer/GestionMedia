@@ -1,4 +1,5 @@
 class TmdbMovie  < ApplicationRecord
+  include Watchlistable
 	self.primary_key = 'id'
 
 	has_many :yggs, foreign_key: 'tmdb_id'
@@ -10,32 +11,10 @@ class TmdbMovie  < ApplicationRecord
   def self.update_tmdb_entry(movie_id)
     begin
       # Récupérer les détails du film
+      puts "Film ID #{movie_id} "
       movie_details = Tmdb::Movie.detail(movie_id, language: "fr")
-  
-      # Initialiser ou trouver l'enregistrement dans la base de données
-      tmdb_entry = TmdbMovie.find_or_initialize_by(id: movie_id)
-  
-      # Mettre à jour les champs
-      tmdb_entry.update!(
-        title: movie_details.title,
-        release_date: movie_details.release_date,
-        overview: movie_details.overview,
-        adult: movie_details.adult,
-        backdrop_path: movie_details.backdrop_path,
-        original_language: movie_details.original_language,
-        original_title: movie_details.original_title,
-        popularity: movie_details.popularity,
-        poster_path: movie_details.poster_path,
-        video: movie_details.video,
-        vote_average: movie_details.vote_average,
-        vote_count: movie_details.vote_count
-      )
-  
-      match_result.genre_ids.each do |genre_id|
-        genre = Genre.find_or_create_by!(id: genre_id)
-        GenresTmdbMovie.find_or_create_by!(tmdb_movie: tmdb_movie, genre: genre)
-      end
-    
+      create_or_update_tmdb_entry(movie_details)
+      
       puts "Film ID #{movie_id} mis à jour avec succès."
     rescue Tmdb::Error => e
       puts "Erreur pour le film ID #{movie_id} : #{e.message}. Ignoré."
@@ -92,7 +71,41 @@ class TmdbMovie  < ApplicationRecord
     end
   end
   
+  def self.create_or_update_tmdb_entry(result)
+    puts result
   
+    # Accéder à `id` en tant que clé de hash
+    tmdb_entry = TmdbMovie.find_or_initialize_by(id: result["id"])
+    
+    if tmdb_entry.new_record?
+      tmdb_entry.update!(
+        title: result["title"] || result["original_title"],
+        release_date: result["release_date"],
+        overview: result["overview"],
+        adult: result["adult"],
+        backdrop_path: result["backdrop_path"],
+        original_language: result["original_language"],
+        original_title: result["original_title"],
+        popularity: result["popularity"],
+        poster_path: result["poster_path"],
+        video: result["video"],
+        vote_average: result["vote_average"],
+        vote_count: result["vote_count"]
+      )
+  
+      # Mettre à jour les genres
+      if result["genre_ids"].present?
+        result["genre_ids"].each do |genre_id|
+          genre = Genre.find_or_create_by!(id: genre_id)
+          GenresTmdbMovie.find_or_create_by!(tmdb_movie: tmdb_entry, genre: genre)
+        end
+      end
+  
+      Rails.logger.info "Nouvelle entrée TMDb créée : #{result['title']} (TMDb ID: #{result['id']})"
+    end
+  
+    tmdb_entry
+  end
   
 end
   
