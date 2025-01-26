@@ -52,9 +52,9 @@ class TmdbApi
   end
 
   # Méthodes pour gérer la watchlist (ajout du session_id)
-  def self.fetch_watchlist(media_type:, page:, session_id: "f6e53394f084dea2b59abd0b271832fa7747aba7")
+  def self.fetch_watchlist(media_type:, page:, session_id: Rails.application.credentials.dig(:tmdb, :session_id))
     raise ArgumentError, "media_type must be 'movies' or 'tv'" unless %w[movies tv].include?(media_type)
-    url = URI("#{API_BASE_URL}/account/6307064/watchlist/#{media_type}?page=#{page}&language=fr-FR&sort_by=created_at.asc&session_id=#{session_id}")
+    url = URI("#{API_BASE_URL}/account/#{Rails.application.credentials.dig(:tmdb, :user_id)}/watchlist/#{media_type}?page=#{page}&language=fr-FR&sort_by=created_at.asc&session_id=#{session_id}")
 
     http = Net::HTTP.new(url.host, url.port)
     http.use_ssl = true
@@ -73,11 +73,11 @@ class TmdbApi
     end
   end
 
-  def self.add_to_watchlist(media_type:, media_id:, session_id: "f6e53394f084dea2b59abd0b271832fa7747aba7")
+  def self.add_to_watchlist(media_type:, media_id:, session_id: Rails.application.credentials.dig(:tmdb, :session_id))
     
     raise ArgumentError, "media_type must be 'movie' or 'tv'" unless %w[movie tv].include?(media_type)
 
-    url = URI("#{API_BASE_URL}/account/6307064/watchlist?session_id=#{session_id}")
+    url = URI("#{API_BASE_URL}/account/#{Rails.application.credentials.dig(:tmdb, :user_id)}/watchlist?session_id=#{session_id}")
 
     http = Net::HTTP.new(url.host, url.port)
     http.use_ssl = true
@@ -105,11 +105,11 @@ class TmdbApi
     end
   end
 
-  def self.remove_from_watchlist(media_type:, media_id:, session_id: "f6e53394f084dea2b59abd0b271832fa7747aba7")
+  def self.remove_from_watchlist(media_type:, media_id:, session_id: Rails.application.credentials.dig(:tmdb, :session_id))
     
     raise ArgumentError, "media_type must be 'movie' or 'tv'" unless %w[movie tv].include?(media_type)
 
-    url = URI("#{API_BASE_URL}/account/6307064/watchlist?session_id=#{session_id}")
+    url = URI("#{API_BASE_URL}/account/#{Rails.application.credentials.dig(:tmdb, :user_id)}/watchlist?session_id=#{session_id}")
 
     http = Net::HTTP.new(url.host, url.port)
     http.use_ssl = true
@@ -138,7 +138,7 @@ class TmdbApi
   end
 
   # Méthode d'importation mise à jour
-  def self.import_watchlist(media_type:, session_id: "f6e53394f084dea2b59abd0b271832fa7747aba7")
+  def self.import_watchlist(media_type:, session_id: Rails.application.credentials.dig(:tmdb, :session_id))
     raise ArgumentError, "media_type must be 'movies' or 'tv'" unless %w[movies tv].include?(media_type)
     page = 1
     total_pages = 1
