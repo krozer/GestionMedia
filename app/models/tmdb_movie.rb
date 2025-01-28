@@ -2,7 +2,8 @@ class TmdbMovie  < ApplicationRecord
   include Watchlistable
 	self.primary_key = 'id'
 
-	has_many :yggs, foreign_key: 'tmdb_id'
+	has_many :ygg_movies, foreign_key: 'tmdb_id'
+  has_many :plex_movies, foreign_key: :tmdb_id, primary_key: :tmdb_id
 	has_many :genres_tmdb_movies, class_name: 'GenresTmdbMovie', dependent: :destroy
 	has_many :genres, through: :genres_tmdb_movies
 	validates :id, presence: true, uniqueness: true

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_21_103905) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_27_125550) do
   create_table "categories", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", null: false
@@ -35,6 +35,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_21_103905) do
     t.datetime "updated_at", null: false
     t.index ["genre_id"], name: "index_genres_tmdb_tvs_on_genre_id"
     t.index ["tmdb_tv_id"], name: "index_genres_tmdb_tvs_on_tmdb_tv_id"
+  end
+
+  create_table "plex_movies", force: :cascade do |t|
+    t.string "titre", null: false
+    t.string "name"
+    t.integer "annee"
+    t.string "langue"
+    t.string "source"
+    t.string "resolution"
+    t.string "codec"
+    t.string "audio"
+    t.string "canaux"
+    t.integer "size"
+    t.integer "tmdb_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "sub_categories", force: :cascade do |t|
@@ -168,6 +184,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_21_103905) do
   add_foreign_key "genres_tmdb_movies", "genres"
   add_foreign_key "genres_tmdb_tvs", "genres"
   add_foreign_key "genres_tmdb_tvs", "tmdb_tvs"
+  add_foreign_key "plex_movies", "tmdb_movies", column: "tmdb_id"
   add_foreign_key "sub_categories", "categories"
   add_foreign_key "tags_ygg_movies", "tags"
   add_foreign_key "tags_ygg_movies", "ygg_movies"

@@ -14,7 +14,14 @@ class YggMovie < ApplicationRecord
 			self.saison = name[/S(?<saison>\d{1,2})(?=\.|\s|E|$)/i, :saison]&.to_i
 			self.episode = name[/E(?<episode>\d{1,2})(?=\.|\s|$)/i, :episode]&.to_i
 			self.resolution = name[/(1080p|720p|2160p|4K)/i, 1]
-			self.langue = name[/(MULTI|TRUEFRENCH|FRENCH|VOSTFR|VOF|VFF|VF2|VFI|VF)/i, 1]&.upcase
+			# self.langue = name[/(MULTI|TRUEFRENCH|VOSTFR|VOF|VFF|VF2|VFI|FRENCH|VF)/i, 1]&.upcase
+      # Liste des mots-clés, priorité donnée à VFF
+      keywords = %w[VFF MULTI TRUEFRENCH VOSTFR VOF VF2 VFI FRENCH VF]
+      # Recherche toutes les correspondances dans le fichier
+      matches = file.scan(/(#{keywords.join('|')})/i).flatten
+
+      # Trouve le mot-clé prioritaire
+      self.langue = keywords.find { |keyword| matches.include?(keyword) }
 			self.codec = name[/(x264|x265|H264|H265|AV1|HEVC)/i, 1]&.upcase
 			self.audio = name[/(DTS|DDP|AC3|AAC|E-AC3)/i, 1]&.upcase
 			self.canaux = name[/(5\.1|7\.1|2\.0)/, 1]
@@ -135,93 +142,12 @@ class YggMovie < ApplicationRecord
     end
   end
 
-  def search_tmdb
-    return nil unless titre.present?
-  
-    # Rechercher une entrée TMDb existante
-    existing_entry = TmdbMovie.find_by(title: titre, id: tmdb_id)
-    return existing_entry if existing_entry
-  
-    # Effectuer la recherche via l'API TMDb
-    search = Tmdb::Search.movie(titre)
-    sleep(0.5)
-    results = search.results
-  
-    return nil if results.blank?
-  
-    # Calculer les scores de pertinence pour chaque résultat
-    scored_results = results.map do |result|
-      {
-        result: result,
-        score: calculate_match_score(result)
-      }
-    end
-  
-    # Trier les résultats par score décroissant
-    sorted_results = scored_results.sort_by { |entry| -entry[:score] }
-  
-    # Détecter les ex-aequo
-    if sorted_results.size > 1 && sorted_results[0][:score] == sorted_results[1][:score]
-      Rails.logger.info "Ex-aequo détecté pour '#{titre}'. Aucun résultat sélectionné."
-      return nil
-    end
-  
-    best_match = sorted_results.first
-  
-    if best_match[:score] > 0.77  || (sorted_results.size == 1 && best_match[:score] > 0.7) # Seuil minimal de confiance
-      match_result = best_match[:result]
-  
-      # Vérifier ou créer une entrée TMDb
-      tmdb_entry = TmdbMovie.create_or_update_tmdb_entry(match_result)
-  
-      # Mettre à jour l'enregistrement YGG avec l'ID TMDb
-      self.update!(tmdb_id: tmdb_entry.id)
-  
-      Rails.logger.info "YggMovie ID #{id} associé à TMDb ID #{tmdb_entry.id}."
-      return tmdb_entry
-    else
-      Rails.logger.info "Aucune correspondance suffisamment pertinente pour '#{titre}' : score '#{best_match[:score]}'."
-      nil
-    end
-  end
-  
-  def calculate_match_score(result)
-    # Calculer la similarité avec `title` et `original_title`
-    title_similarity = similarity(titre, result.title)
-    original_title_similarity = similarity(titre, result.original_title || '')
-  
-    # Prendre le meilleur score entre `title` et `original_title`
-    best_title_similarity = [title_similarity, original_title_similarity].max
-  
-    # Calculer la proximité de date
-    date_proximity = release_date_proximity(result.release_date, annee)
-  
-    # Calculer le score de popularité (normalisé entre 0 et 1)
-    popularity_score = result.popularity.to_f / 100
-    popularity_score = 1.0 if popularity_score > 1.0
-  
-    # Calculer le score des votes
-    vote_score = result.vote_count.to_f / 10_000
-    vote_score = 1.0 if vote_score > 1.0
-  
-    # Bonus pour la présence de `backdrop_path` et `poster_path`
-    media_bonus = 0
-    media_bonus += 0.1 if result.backdrop_path.present?
-    media_bonus += 0.1 if result.poster_path.present?
-  
-    # Calcul du score final avec pondération
-    best_title_similarity * 0.5 +
-      date_proximity * 0.2 +
-      popularity_score * 0.15 +
-      vote_score * 0.1 +
-      media_bonus
-  end
-
   def self.search_all_tmdb_id
     where(tmdb_id: nil).find_each do |ygg_movie|
       ygg_movie.search_tmdb
     end
   end
+
   def human_readable_size
     return "N/A" if size.blank?
 
@@ -244,19 +170,5 @@ class YggMovie < ApplicationRecord
     sub_category&.category&.name
   end
 
-  # Calcul de la similarité des titres
-  def similarity(str1, str2)
-    return 0.0 if str1.blank? || str2.blank?
 
-    str1=clean_name(str1)
-    str2=clean_name(str2)
-    matcher = Amatch::JaroWinkler.new(str1)
-    matcher.match(str2) # Retourne un score entre 0.0 (aucune similarité) et 1.0 (identique)
-  end
-
-  # Calcul de la proximité des dates de sortie
-  def release_date_proximity(api_date, local_year)
-    return 0 if api_date.blank? || local_year.blank?
-    (Date.parse(api_date).year - local_year.to_i).abs <= 1 ? 1.0 : 0.0
-  end
 end

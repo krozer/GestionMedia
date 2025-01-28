@@ -1,6 +1,7 @@
+# lib\plex_api.rb
 require 'httparty'
 
-class PlexClient
+class PlexApi
   include HTTParty
   base_uri 'http://127.0.0.1:32400'
 
@@ -101,5 +102,8 @@ class PlexClient
     else
       raise "Erreur lors de la requête Plex : #{response.code} - #{response.message}"
     end
+  end
+  def self.normalize_to_array(data)
+    data.is_a?(Array) ? data : [data].compact
   end
 end

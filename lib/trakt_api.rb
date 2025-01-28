@@ -1,6 +1,6 @@
 require 'httparty'
 
-class TraktClient
+class TraktApi
   include HTTParty
   base_uri 'https://api.trakt.tv'
 
