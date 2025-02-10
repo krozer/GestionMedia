@@ -78,5 +78,20 @@ class PlexMovie < ApplicationRecord
       end
     end
   end
+  def human_readable_size
+    return "N/A" if size.blank?
+
+    units = %w[B Ko Mo Go To]
+    value = size.to_f
+    index = 0
+
+    while value >= 1024 && index < units.size - 1
+      value /= 1024
+      index += 1
+    end
+
+    # Retourne la taille avec 2 décimales et l'unité correspondante
+    "#{value.round(2)} #{units[index]}"
+  end
 end
   

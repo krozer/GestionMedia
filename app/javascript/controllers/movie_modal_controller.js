@@ -172,4 +172,82 @@ searchTmdb(event) {
         console.error("Erreur lors de la requête :", error);
       });
   }
+  downloadTorrent(event) {
+    event.preventDefault();
+
+    const yggId = event.currentTarget.dataset.yggId;
+    const yggName = event.currentTarget.dataset.yggName;
+
+    fetch(`/download_torrent/${yggId}`, {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content,
+        "Content-Type": "application/json"
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(`Téléchargement lancé : ${yggName}`);
+      } else {
+        alert(`Erreur: ${data.error}`);
+      }
+    })
+    .catch(error => console.error("Erreur :", error));
+  }
+  selectTmdb(event) {
+    const button = event.currentTarget;
+    const yggId = button.getAttribute("data-ygg-id");
+    const tmdbId = button.getAttribute("data-tmdb-id");
+    
+    console.log("Select Tmdb 2")
+
+    fetch(`/ygg_movies/${yggId}/associate_tmdb`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+      },
+      body: JSON.stringify({ tmdb_id: tmdbId }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.error("Erreur :", data.error);
+          alert(data.error);
+        } else {
+          console.log("Succès :", data.message);
+          alert(data.message);
+          if (window.location.pathname === "/ygg_movies/next_unmatched") {
+            window.location.href = "/ygg_movies/next_unmatched"; // Recharge la page proprement
+          }
+          // Charger le prochain film
+          if (data.next_movie_id) {
+            window.location.href = `/ygg_movies/${data.next_movie_id}/next_unmatched`;
+          } else {
+            alert("🎉 Tous les films ont un TMDb ID !");
+            window.location.reload();
+          }
+        }
+      })
+      .catch(error => {
+        console.error("Erreur réseau :", error);
+      });
+  }
+  reloadPage(event) {
+    event.preventDefault(); // Empêche la soumission par défaut
+    const form = event.target;
+
+    fetch(form.action + "?" + new URLSearchParams(new FormData(form)), {
+      method: "GET",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+    .then(response => response.text())
+    .then(html => {
+      document.documentElement.innerHTML = html; // Remplace tout le HTML
+    })
+    .catch(error => console.error("Erreur lors de la recherche :", error));
+  }
 }

@@ -3,7 +3,7 @@ class TmdbMovie  < ApplicationRecord
 	self.primary_key = 'id'
 
 	has_many :ygg_movies, foreign_key: 'tmdb_id'
-  has_many :plex_movies, foreign_key: :tmdb_id, primary_key: :tmdb_id
+  has_many :plex_movies, foreign_key: :tmdb_id, primary_key: :id
 	has_many :genres_tmdb_movies, class_name: 'GenresTmdbMovie', dependent: :destroy
 	has_many :genres, through: :genres_tmdb_movies
 	validates :id, presence: true, uniqueness: true
@@ -107,6 +107,89 @@ class TmdbMovie  < ApplicationRecord
   
     tmdb_entry
   end
-  
+
+  # Récupérer la date la plus récente de vu
+  def self.derniere_date_vue
+    maximum(:vu)
+  end
+
+  # Récupérer le dernier film vu
+  def self.dernier_film_vu
+    where.not(vu: nil).order(vu: :desc).first
+  end
+
+  def self.sync_trakt(username,full_sync=false)
+    # Initialiser l'API Trakt
+    trakt_api = TraktApi.new()
+
+    # Récupérer la dernière date de visionnage enregistrée
+    derniere_vu = full_sync ? nil : self.maximum(:vu)
+    Rails.logger.info "Dernière date de visionnage en base : #{derniere_vu || 'Aucune'}"
+
+    page = 1
+    limit = 10 # Nombre d'éléments par page
+    nouveaux_watched = []
+    should_stop = false # Drapeau pour arrêter la boucle `loop`
+
+    # Boucle sur l'API Trakt tant que les films récupérés sont plus récents que `derniere_vu`
+    loop do
+      response = trakt_api.watched(username, 'movies', page: page, limit: limit)
+      data = response[:data]
+
+      break if data.blank? # Arrêter si on reçoit une réponse vide (fin des données)
+
+      data.each do |entry|
+        watched_at = entry["watched_at"]&.to_datetime
+        tmdb_id = entry.dig("movie", "ids", "tmdb")
+
+        # Vérification que les données sont valides
+        next if tmdb_id.nil? || watched_at.nil?
+
+        # Si l'entrée est plus ancienne que `derniere_vu`, on met `should_stop = true`
+        if derniere_vu && watched_at <= derniere_vu
+          Rails.logger.info "Arrêt de la synchronisation : les entrées restantes sont plus anciennes que #{derniere_vu}."
+          should_stop = true
+          break # Quitte uniquement `each`, mais pas `loop`
+        end
+
+        nouveaux_watched << { tmdb_id: tmdb_id, watched_at: watched_at }
+      end
+
+      break if should_stop # Quitte `loop` après avoir terminé `each`
+      
+      page += 1 # Passer à la page suivante
+    end
+
+    Rails.logger.info "Nombre de nouveaux films regardés à synchroniser : #{nouveaux_watched.count}"
+
+    # Appliquer la mise à jour des films en base
+    nouveaux_watched.each do |entry|
+      tmdb_id = entry[:tmdb_id]
+      watched_at = entry[:watched_at]
+
+      tmdb_movie = self.find_by(id: tmdb_id)
+
+      if tmdb_movie
+        Rails.logger.info "Mise à jour du film ID #{tmdb_id} avec la date #{watched_at}"
+        tmdb_movie.update!(vu: watched_at)
+      else
+        Rails.logger.info "Film ID #{tmdb_id} non trouvé en base, tentative de création..."
+        begin
+          new_tmdb_movie = self.update_tmdb_entry(tmdb_id)
+          
+          if new_tmdb_movie
+            Rails.logger.info "Film ID #{tmdb_id} créé avec succès, mise à jour de la date de visionnage."
+            new_tmdb_movie.update!(vu: watched_at)
+          else
+            Rails.logger.warn "Impossible de récupérer les données TMDb pour ID #{tmdb_id}."
+          end
+        rescue StandardError => e
+          Rails.logger.error "Erreur lors de la création du film TMDb ID #{tmdb_id} : #{e.message}"
+        end
+      end
+    end
+
+    Rails.logger.info "Synchronisation Trakt terminée."
+  end
 end
   

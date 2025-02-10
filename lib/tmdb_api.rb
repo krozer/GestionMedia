@@ -175,4 +175,9 @@ class TmdbApi
     model = media_type == 'movie' ? TmdbMovie : TmdbTv
     model.update_all(watchlist: false)
   end
+
+  def self.sync_full
+    reset_watchlist_flags(media_type: 'movie')
+    import_watchlist(media_type: 'movies')
+  end
 end

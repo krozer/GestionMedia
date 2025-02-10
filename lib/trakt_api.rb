@@ -1,13 +1,14 @@
+# lib\trakt_api.rb
 require 'httparty'
 
 class TraktApi
   include HTTParty
   base_uri 'https://api.trakt.tv'
 
-  def initialize(client_id, access_token = nil)
+  def initialize( access_token = nil)
     @headers = {
       'Content-Type' => 'application/json',
-      'trakt-api-key' => client_id,
+      'trakt-api-key' => Rails.application.credentials.dig(:trakt, :token),
       'trakt-api-version' => '2'
     }
     @headers['Authorization'] = "Bearer #{access_token}" if access_token

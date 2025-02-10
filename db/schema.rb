@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_27_125550) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_28_161432) do
   create_table "categories", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", null: false
@@ -100,6 +100,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_27_125550) do
     t.float "vote_average"
     t.integer "vote_count"
     t.boolean "watchlist", default: false
+    t.datetime "vu"
   end
 
   create_table "tmdb_tvs", force: :cascade do |t|

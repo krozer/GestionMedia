@@ -1,9 +1,20 @@
 urls:
-  - type: serie
+  - name: anime
+    type: serie
     suburl: name=&description=&file=&uploader=&category=2145&sub_category=2184&do=search
-  - type: serie
-    suburl: name=&description=&file=&uploader=&category=2145&sub_category=2179&do=search
-  - type: film
-    suburl: name=&description=&file=&uploader=&category=2145&sub_category=2183&do=search
-  - type: film
+  - name: serie
+    type: serie
+    suburl: name=&description=&file=&uploader=&category=2145&sub_category=2184&option_langue%3Amultiple%5B0%5D=2&option_langue%3Amultiple%5B1%5D=4&do=search
+  - name: film
+    type: film
+    suburl: name=&description=&file=&uploader=&category=2145&sub_category=2183&option_langue%3Amultiple%5B%5D=2&option_langue%3Amultiple%5B%5D=4&do=search
+  - name: animation
+    type: film
     suburl: name=&description=&file=&uploader=&category=2145&sub_category=2178&do=search
+  - name: film_hdlight
+    type: film
+    suburl: name=&description=&file=hdlight&uploader=&category=2145&sub_category=2183&option_langue%3Amultiple%5B%5D=2&option_langue%3Amultiple%5B%5D=4&do=search
+  - name: animation_hdlight
+    type: film
+    suburl: name=hdlight&description=&file=&uploader=&category=2145&sub_category=2178&option_langue%3Amultiple%5B0%5D=2&option_langue%3Amultiple%5B1%5D=4&do=search&order=desc&sort=publish_date
+download_directory: "D:\\Download\\film"

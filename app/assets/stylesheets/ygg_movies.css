@@ -187,18 +187,7 @@ body {
 	background-color: #ff5dc6;
   }
   
-  .accordion-content {
-	max-height: 0;
-	overflow: hidden;
-	transition: max-height 0.5s ease-out;
-	padding: 0 15px;
-  }
-  
-  .accordion-content.open {
-	max-height: 1000px; /* Large valeur pour afficher tout le contenu */
-	transition: max-height 0.5s ease-in;
-	padding: 15px;
-  }
+ 
   .ygg-table .highlight-filter {
 	font-weight: bold;
 	background-color: rgba(0, 128, 0, 0.2); /* Vert clair */
@@ -270,3 +259,227 @@ body {
 	transform: scale(1.1);
   }
   
+  /* Aura néon bleu pour les films présents dans PlexMovie */
+.plex-movie-present .poster-container img {
+	box-shadow: 0 0 15px rgba(0, 183, 255, 0.8), 
+				0 0 30px rgba(0, 183, 255, 0.6), 
+				0 0 45px rgba(0, 183, 255, 0.4);
+	transition: box-shadow 0.3s ease-in-out;
+  }
+  
+  /* Effet plus intense au survol */
+  .plex-movie-present:hover .poster-container img {
+	box-shadow: 0 0 25px rgba(0, 183, 255, 1), 
+				0 0 50px rgba(0, 183, 255, 0.8), 
+				0 0 75px rgba(0, 183, 255, 0.6);
+  }
+  
+/* Icône "V" Synthwave pour les films vus */
+.watched-icon {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 40px;
+	height: 20px;
+	background: rgba(255, 0, 255, 0.3); /* Fond rose translucide */
+	color: cyan; /* Texte en bleu cyan néon */
+	font-weight: bold;
+	font-size: 16px;
+	text-align: center;
+	line-height: 20px;
+	font-family: 'Orbitron', sans-serif;
+	border-radius: 5px;
+	border: 1px solid rgba(0, 255, 255, 0.7); /* Bordure bleue translucide */
+	text-shadow: 0 0 5px cyan, 0 0 10px cyan;
+	box-shadow: 0 0 8px rgba(255, 0, 255, 0.6), 0 0 12px rgba(0, 255, 255, 0.6);
+	backdrop-filter: blur(3px); /* Effet HUD translucide */
+	transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  }
+  
+  /* Effet néon pulsant au survol */
+  .watched-icon:hover {
+	transform: scale(1.1);
+	box-shadow: 0 0 12px rgba(255, 0, 255, 0.8), 0 0 16px rgba(0, 255, 255, 0.8);
+  }
+  /* 💜 Accordéon des filtres */
+.filters-accordion {
+	background: rgba(34, 34, 51, 0.9);
+	padding: 15px;
+	border-radius: 8px;
+	box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+	font-family: 'Orbitron', sans-serif;
+  }
+  
+  .accordion-header {
+	font-size: 1.5rem;
+	font-weight: bold;
+	text-align: center;
+	cursor: pointer;
+	padding: 10px;
+	background: linear-gradient(45deg, #ff0077, #7700ff);
+	color: white;
+	border-radius: 5px;
+	box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+	transition: 0.3s;
+  }
+  
+  .accordion-header:hover {
+	background: linear-gradient(45deg, #ff00ff, #5500ff);
+  }
+  
+  /* 📌 Style général des filtres */
+  .filter-group {
+	margin: 15px 0;
+	padding: 10px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 5px;
+  }
+  
+  .filter-label {
+	font-weight: bold;
+	color: #ff79c6;
+	display: block;
+	margin-bottom: 5px;
+  }
+  
+  /* 🔘 Options de sélection */
+  .filter-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+  }
+  
+  .filter-option {
+	background: rgba(0, 0, 0, 0.2);
+	padding: 5px 10px;
+	border-radius: 5px;
+	transition: 0.3s;
+  }
+  
+  .filter-option:hover {
+	background: rgba(0, 255, 255, 0.3);
+  }
+  
+  /* 🟢 Inputs */
+  input[type="text"],
+  input[type="number"] {
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	padding: 5px;
+	color: white;
+	border-radius: 3px;
+  }
+  
+  /* 🎨 Boutons */
+  .filter-buttons {
+	display: flex;
+	justify-content: space-between;
+  }
+  
+  .apply-button {
+	background: linear-gradient(45deg, #ff00ff, #ff0077);
+	color: white;
+	font-weight: bold;
+	padding: 8px 15px;
+	border-radius: 5px;
+	cursor: pointer;
+  }
+  
+  .apply-button:hover {
+	background: linear-gradient(45deg, #ff0077, #7700ff);
+  }
+  
+  .reset-filters-button {
+	color: #ff79c6;
+	font-weight: bold;
+	text-decoration: none;
+  }
+/* Accordéon des filtres */
+.filters-accordion {
+	background: rgba(34, 34, 51, 0.9);
+	padding: 15px;
+	border-radius: 8px;
+	box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+	font-family: 'Orbitron', sans-serif;
+	overflow: hidden;
+  }
+  
+  /* Entête du filtre */
+  .accordion-header {
+	font-size: 1.5rem;
+	font-weight: bold;
+	text-align: center;
+	cursor: pointer;
+	padding: 10px;
+	background: linear-gradient(45deg, #ff0077, #7700ff);
+	color: white;
+	border-radius: 5px;
+	box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+	transition: 0.3s;
+  }
+  
+  .accordion-header:hover {
+	background: linear-gradient(45deg, #ff00ff, #5500ff);
+  }
+  
+  /* Contenu du filtre (accordéon) */
+  .accordion-content {
+	max-height: 0;
+	overflow: hidden;
+	transition: max-height 0.5s ease-out, padding 0.3s ease-out;
+	padding: 0 15px;
+  }
+  
+  /* Quand le filtre est ouvert */
+  .accordion-content.open {
+	max-height: 800px; /* Une grande valeur pour s'adapter au contenu */
+	padding: 15px;
+	overflow-y: auto; /* Ajoute un scroll si nécessaire */
+  }
+	/* Fond différent pour les PlexMovies */
+.plex-row {
+	background: rgba(0, 183, 255, 0.2); /* Bleu translucide */
+	color: white;
+	font-weight: bold;
+}
+
+/* Ajout d'un effet au survol */
+.plex-row:hover {
+	background: rgba(0, 183, 255, 0.4);
+}
+
+/* Ajout d'une bordure pour mieux distinguer */
+.plex-row td {
+	border-bottom: 2px solid rgba(0, 183, 255, 0.5);
+}
+/* Conteneur Scrollable Horizontal */
+.table-container {
+	width: 100%;
+	overflow-x: auto;
+	white-space: nowrap; /* Empêche le retour à la ligne dans les cellules */
+	border: 2px solid rgba(255, 255, 255, 0.2); /* Bordure pour bien voir la limite */
+	padding-bottom: 5px; /* Évite que la scrollbar cache du texte */
+}
+
+/* Ajustement du tableau */
+.ygg-table {
+	width: max-content; /* Permet au tableau de s'étendre si nécessaire */
+	border-collapse: collapse;
+}
+
+/* Ligne des PlexMovies */
+.plex-row {
+	background: rgba(0, 183, 255, 0.2);
+	color: white;
+	font-weight: bold;
+}
+
+/* Survol des PlexMovies */
+.plex-row:hover {
+	background: rgba(0, 183, 255, 0.4);
+}
+
+/* Ajout d'une bordure pour séparer les films Plex */
+.plex-row td {
+	border-bottom: 2px solid rgba(0, 183, 255, 0.5);
+}

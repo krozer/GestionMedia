@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  plex_key: MyString
+  plex_guid: MyString
+  plex_title: MyString
+  size: 1
+  language: MyString
+  resolution: MyString
+  codec: MyString
+  audio: MyString
+  tmdb_id: 1
+
+two:
+  plex_key: MyString
+  plex_guid: MyString
+  plex_title: MyString
+  size: 1
+  language: MyString
+  resolution: MyString
+  codec: MyString
+  audio: MyString
+  tmdb_id: 1

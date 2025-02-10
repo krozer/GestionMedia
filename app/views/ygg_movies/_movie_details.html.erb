@@ -12,6 +12,7 @@
   </div>
 </div>
     <h3>YggMovies associés</h3>
+    <div class="table-container">
     <table class="ygg-table">
       <thead>
         <tr>
@@ -25,11 +26,16 @@
       </thead>
       <tbody>
         <% @ygg_movies.each do |ygg_movie| %>
-			<tr class="<%= 'highlight-filter' if @filtered_ygg_movie_ids.include?(ygg_movie.id) %>">
+			<tr class="<%= 'highlight-filter' if @filtered_ygg_movie_ids&.include?(ygg_movie.id) %>">
             <td><%= ygg_movie.source %></td>
             <td><%= ygg_movie.resolution %></td>
             <td><%= ygg_movie.langue %></td>
-            <td><%= ygg_movie.name %></td>
+            <td>  <a href="#" class="download-link"
+     data-ygg-id="<%= ygg_movie.id %>"
+     data-ygg-name="<%= ygg_movie.name %>"
+     data-action="click->movie-modal#downloadTorrent">
+    <%= ygg_movie.name %>
+  </a></td>
 			<td><%= ygg_movie.human_readable_size  %></td>
         <td>
 			<button 
@@ -43,9 +49,19 @@
         </td>
           </tr>
         <% end %>
+            <% @plex_movies.each do |plex_movie| %>
+      <tr class="plex-row">
+        <td><%= plex_movie.source %></td>
+        <td><%= plex_movie.resolution %></td>
+        <td><%= plex_movie.langue %></td>
+        <td><%= plex_movie.name %></td>
+        <td><%= plex_movie.human_readable_size %></td>
+        <td>-</td> <!-- Pas d'actions pour Plex -->
+      </tr>
+    <% end %>
       </tbody>
     </table>
-	
+	</div>
   <!-- Modal de correction -->
   <div id="correction-modal" class="hidden" data-movie-modal-target="correctionModal">
     <div class="modal-content">

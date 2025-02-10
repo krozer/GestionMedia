@@ -1,0 +1,40 @@
+<h1>Associer un TMDb ID</h1>
+
+<% if @ygg_movie %>
+  <h2>Film à traiter : <%= @ygg_movie.titre %></h2>
+  <p><strong>Ajouté le :</strong> <%= @ygg_movie.created_at.strftime("%d/%m/%Y") %></p>
+  <p>Nom :</strong> <%= @ygg_movie.name %></p>
+
+  <!-- Formulaire de recherche TMDb -->
+  <h3>🔎 Recherche TMDb :</h3>
+  <%= form_with url: next_unmatched_ygg_movies_path, method: :get, local: true, data: { controller: "search", action: "submit->search#reloadPage" } do %>
+	<input type="text" name="search" placeholder="Rechercher un film..." value="<%= params[:search] %>">
+	<button type="submit">🔍 Rechercher</button>
+  <% end %>
+
+  <!-- Affichage des résultats TMDb -->
+  <h3>Résultats TMDb :</h3>
+  <div id="tmdb-results">
+    <% if @tmdb_results.any? %>
+      <% @tmdb_results.each do |result| %>
+        <div class="tmdb-result">
+          <img src="https://image.tmdb.org/t/p/w200<%= result.poster_path %>" alt="<%= result.title %>">
+          <h4><%= result.title %> (<%= result.release_date&.split("-")&.first %>)</h4>
+          <%= button_to "Sélectionner", associate_tmdb_ygg_movie_path(@ygg_movie, tmdb_id: result.id), method: :post, class: "select-button" %>
+        </div>
+      <% end %>
+    <% else %>
+      <p>Aucun résultat trouvé.</p>
+    <% end %>
+  </div>
+
+  <!-- Input manuel pour entrer un TMDb ID -->
+  <h3>✍️ Associer un ID TMDb manuellement :</h3>
+  <%= form_with url: associate_tmdb_ygg_movie_path(@ygg_movie), method: :post, local: true do %>
+    <input type="number" name="tmdb_id" placeholder="Saisir un ID TMDb...">
+    <button type="submit">✅ Associer</button>
+  <% end %>
+
+<% else %>
+  <p>🎉 Tous les films ont un TMDb ID !</p>
+<% end %>

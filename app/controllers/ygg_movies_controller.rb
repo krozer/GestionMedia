@@ -1,3 +1,4 @@
+# app\controllers\ygg_movies_controller.rb
 class YggMoviesController < ApplicationController
   def index
     @search_query = params[:search].presence || ""
@@ -11,20 +12,45 @@ class YggMoviesController < ApplicationController
     @ygg_movies = TmdbMovie
     .joins("INNER JOIN (#{subquery.to_sql}) subquery ON subquery.tmdb_id = tmdb_movies.id")
     .joins("INNER JOIN ygg_movies ON ygg_movies.tmdb_id = tmdb_movies.id AND ygg_movies.added_date = subquery.earliest_date")
-    .includes(:genres) # Inclure les genres pour éviter les N+1
+    .left_joins(:plex_movies) # ✅ Utilise `.left_joins` pour être compatible avec `.includes`
+    .includes(:genres, :plex_movies) # ✅ Précharge pour éviter les requêtes N+1
     .where('LOWER(tmdb_movies.title) LIKE ? OR LOWER(tmdb_movies.original_title) LIKE ?', "%#{@search_query.downcase}%", "%#{@search_query.downcase}%")
-    .order(sort_column + ' ' + sort_direction)
+    # .where.not(plex_movies: { tmdb_id: nil })
+    .where.not("LOWER(ygg_movies.name) LIKE ?", '%.vfq.%') # 🔴 Exclure les noms contenant ".vfq."
+    .order("#{sort_column} #{sort_direction}")
+    .includes(:plex_movies)
     .distinct
     .page(params[:page])
     .per(33)
 
-  # Filtrage par watchlist
-  if params[:filter_watchlist] == "1"
-    @ygg_movies = @ygg_movies.where(tmdb_id: TmdbMovie.where(watchlist: true).pluck(:id))
-  end
+# 🟢 Correction du filtre "Films vus"
+if params.dig(:filter, :tmdb_vu) == "1"   # Vu
+  @ygg_movies = @ygg_movies.where.not(vu: nil)
+elsif params.dig(:filter, :tmdb_vu) == "0" # Non vu
+  @ygg_movies = @ygg_movies.where(vu: nil)
+end
 
-    # Appliquer les filtres
-    @ygg_movies = apply_filters(@ygg_movies, @filter_params)
+# 🟢 Correction du filtre "Présence dans Plex"
+if params.dig(:filter, :plex_present) == "1"   # Présent dans Plex
+  @ygg_movies = @ygg_movies.where.not(plex_movies: { tmdb_id: nil })
+elsif params.dig(:filter, :plex_present) == "0" # Absent de Plex
+  @ygg_movies = @ygg_movies.where(plex_movies: { tmdb_id: nil })
+end
+
+# 🟢 Correction du filtre "Watchlist TMDb"
+if params.dig(:filter, :tmdb_watchlist) == "1"   # Dans la watchlist
+  @ygg_movies = @ygg_movies.where(watchlist: true)
+elsif params.dig(:filter, :tmdb_watchlist) == "0" # Pas dans la watchlist
+  @ygg_movies = @ygg_movies.where(watchlist: false)
+end
+
+  # # Filtrage par watchlist
+  # if params[:filter_watchlist] == "1"
+  #   @ygg_movies = @ygg_movies.where(tmdb_id: TmdbMovie.where(watchlist: true).pluck(:id))
+  # end
+
+  #   # Appliquer les filtres
+  #   @ygg_movies = apply_filters(@ygg_movies, @filter_params)
 
 end
 def movie_details
@@ -37,24 +63,46 @@ def movie_details
 
   @ygg_movies = base_scope
   @filtered_ygg_movie_ids = ygg_movies_scope.any? ? ygg_movies_scope.pluck(:id) : nil
+  @plex_movies = PlexMovie.where(tmdb_id: @tmdb_movie.id)
 
   respond_to do |format|
     format.html { render partial: "movie_details" }
   end
 end
+def next_unmatched
+  @ygg_movie = YggMovie.where(tmdb_id: nil).order(:created_at).first
+  @tmdb_results = []
 
+  if params[:search].present?
+    @tmdb_results = Tmdb::Search.movie(params[:search]).results
+  elsif @ygg_movie
+    @tmdb_results = Tmdb::Search.movie(@ygg_movie.titre).results
+  end
+  puts "Résultats TMDb envoyés à la vue : #{@tmdb_results.inspect}"
+  respond_to do |format|
+    format.html
+    format.json { render json: { ygg_movie: @ygg_movie, tmdb_results: @tmdb_results } }
+  end
+end
 def associate_tmdb
   ygg_movie = YggMovie.find(params[:id])
   tmdb_id = params[:tmdb_id]
-  existing_entry = TmdbMovie.find_by(id: tmdb_id)
-  if ! existing_entry.present?
-    existing_entry = TmdbMovie.update_tmdb_entry(tmdb_id)
-  end
+  
+  existing_entry = TmdbMovie.find_by(id: tmdb_id) || TmdbMovie.update_tmdb_entry(tmdb_id)
+  puts "#{ygg_movie.inspect} :: #{params[:tmdb_id]} :: #{existing_entry.inspect}"
   begin
-    # ygg_movie.create_or_update_tmdb_entry(tmdb_id)
-    ygg_movie.tmdb_id = existing_entry.id
-    ygg_movie.save
-    render json: { message: "L'association a été mise à jour avec succès !" }, status: :ok
+    ygg_movie.update!(tmdb_id: existing_entry.id)
+    if request.referer&.include?("/ygg_movies/next_unmatched")
+      redirect_to next_unmatched_ygg_movies_path, notice: "TMDb ID associé avec succès !"
+    else
+      next_movie = YggMovie.where(tmdb_id: nil).order(:created_at).first
+
+          render json: {
+        message: "TMDb ID associé avec succès !",
+        next_movie_id: next_movie&.id,
+        next_movie_title: next_movie&.titre
+      }, status: :ok
+    end
   rescue StandardError => e
     render json: { error: "Erreur : #{e.message}" }, status: :unprocessable_entity
   end
@@ -108,5 +156,20 @@ private
     if filters[:langue].present?
       scope = scope.where(ygg_movies: { langue: filters[:langue] })
     end
+  end
+  private
+
+  def sort_column
+    %w[
+      tmdb_movies.release_date 
+      tmdb_movies.title 
+      ygg_movies.created_at 
+      ygg_movies.updated_at 
+      plex_movies.created_at
+    ].include?(params[:sort]) ? params[:sort] : 'ygg_movies.created_at'
+  end
+
+  def sort_direction
+    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'desc'
   end
 end

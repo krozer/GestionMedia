@@ -2,11 +2,14 @@ class YggMovie < ApplicationRecord
   self.primary_key = 'id'
   require 'amatch'
   include NameCleaner # Inclusion du module
+  include TmdbSearchable
 	# Relations
 	belongs_to :sub_category, foreign_key: 'sub_category', primary_key: 'code', optional: true
 	belongs_to :tmdb_movie, foreign_key: 'tmdb_id', class_name: 'TmdbMovie', optional: true
   has_and_belongs_to_many :tags, join_table: :tags_ygg_movies
-
+  def cleaned_name
+    clean_name(titre) # 👈 Utilise la méthode définie dans `NameCleaner`
+  end
 	# Extract properties from the name field
 	def extract_properties_from_name
 		if name.present?
@@ -18,14 +21,14 @@ class YggMovie < ApplicationRecord
       # Liste des mots-clés, priorité donnée à VFF
       keywords = %w[VFF MULTI TRUEFRENCH VOSTFR VOF VF2 VFI FRENCH VF]
       # Recherche toutes les correspondances dans le fichier
-      matches = file.scan(/(#{keywords.join('|')})/i).flatten
+      matches = name.scan(/(#{keywords.join('|')})/i).flatten
 
       # Trouve le mot-clé prioritaire
       self.langue = keywords.find { |keyword| matches.include?(keyword) }
 			self.codec = name[/(x264|x265|H264|H265|AV1|HEVC)/i, 1]&.upcase
 			self.audio = name[/(DTS|DDP|AC3|AAC|E-AC3)/i, 1]&.upcase
 			self.canaux = name[/(5\.1|7\.1|2\.0)/, 1]
-			self.source = name[/(BluRay|WEB(-)?DL|HDTV|HDRip|WEBRip|BDRIP|NF.WEB|AMZN.WEB|HDLight|HDR|WEB)/i, 1]&.upcase
+			self.source = name[/(BluRay|WEB(-)?DL|HDTV|HDRip|WEBRip|BDRIP|NF.WEB|AMZN.WEB|HDR|WEB)/i, 1]&.upcase
 			# Extraire le titre principal
 			self.titre = extract_title_from_name
 			# Associate tags for unstructured attributes
@@ -34,9 +37,17 @@ class YggMovie < ApplicationRecord
 	end
 	def extract_title_from_name
 		return nil unless name.present?
-	  
+	  puts "Traitement de #{name.dup}"
 		cleaned_name = name.dup
-	  
+    match = cleaned_name.match(/^(.+?).\((19\d{2}|20\d{2})\)/)
+
+    if match
+      title = match[1].strip # Le titre est la partie avant les parenthèses
+      year = match[2] # L'année de production
+      cleaned_name=clean_name(title)
+      puts "Détection d'un format Titre (AAAA) → Titre extrait : #{title} (#{year})"
+      return cleaned_name
+    end
 		# Étape 1 : Trouver les limites du titre
 		# Identifier la position des éléments qui marquent le début des métadonnées
 		metadata_patterns = [
