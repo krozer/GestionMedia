@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_28_161432) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_12_203011) do
   create_table "categories", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", null: false
@@ -103,6 +103,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_28_161432) do
     t.datetime "vu"
   end
 
+  create_table "tmdb_tv_episodes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "tmdb_tv_seasons", force: :cascade do |t|
+    t.integer "tmdb_tv_id"
+    t.integer "season_number"
+    t.string "title"
+    t.text "overview"
+    t.date "air_date"
+    t.integer "episode_count"
+    t.string "poster_path"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tmdb_tv_id"], name: "index_tmdb_tv_seasons_on_tmdb_tv_id"
+  end
+
   create_table "tmdb_tvs", force: :cascade do |t|
     t.string "name"
     t.string "original_name"
@@ -179,6 +197,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_28_161432) do
     t.string "titre"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_complete_season"
+    t.boolean "is_complete_series"
     t.index ["tmdb_tv_id"], name: "index_ygg_tvs_on_tmdb_tv_id"
   end
 
@@ -191,6 +211,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_28_161432) do
   add_foreign_key "tags_ygg_movies", "ygg_movies"
   add_foreign_key "tags_ygg_tvs", "tags"
   add_foreign_key "tags_ygg_tvs", "ygg_tvs"
+  add_foreign_key "tmdb_tv_seasons", "tmdb_tvs"
   add_foreign_key "ygg_movies", "tmdb_movies", column: "tmdb_id"
   add_foreign_key "ygg_tvs", "tmdb_tvs"
 end

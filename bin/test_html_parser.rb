@@ -2,7 +2,7 @@ require_relative '../config/environment'
 # Exemple d'utilisation
 require 'open3'
 
-base_url = "https://www.ygg.re/"
+base_url = "https://www.yggtorrent.top/"
 
 def execute_temporaire(file_path, url)
   command = "D:/app/gestionMedia/temporaire.exe \"#{url}\""

@@ -5,12 +5,12 @@ class TorrentsController < ApplicationController
     begin
       ygg_movie = YggMovie.find(params[:id])
       passkey = Rails.application.credentials.dig(:ygg, :passkey)
-      torrent_url = "https://www.ygg.re/rss/download?id=#{ygg_movie.id}&passkey=#{passkey}"
+      torrent_url = "https://www.yggtorrent.top/rss/download?id=#{ygg_movie.id}&passkey=#{passkey}"
 
       Rails.logger.info "Téléchargement du fichier torrent via Edge : #{torrent_url}"
 
       # Supprimer d'éventuels fichiers .torrent existants
-      downloads_dir = "C:/Users/krozer/Downloads"
+      downloads_dir = "C:/Users/Seak_/Downloads"
       Dir.glob("#{downloads_dir}/*.torrent").each { |file| File.delete(file) }
 
       # Lancer Edge pour forcer le téléchargement
@@ -20,7 +20,7 @@ class TorrentsController < ApplicationController
 
       # Attendre que le fichier .torrent apparaisse
       torrent_file = nil
-      10.times do
+      15.times do
         sleep(1)
         torrent_files = Dir.glob("#{downloads_dir}/*.torrent")
         unless torrent_files.empty?

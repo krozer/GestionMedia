@@ -16,9 +16,8 @@ class YggMoviesController < ApplicationController
     .includes(:genres, :plex_movies) # ✅ Précharge pour éviter les requêtes N+1
     .where('LOWER(tmdb_movies.title) LIKE ? OR LOWER(tmdb_movies.original_title) LIKE ?', "%#{@search_query.downcase}%", "%#{@search_query.downcase}%")
     # .where.not(plex_movies: { tmdb_id: nil })
-    .where.not("LOWER(ygg_movies.name) LIKE ?", '%.vfq.%') # 🔴 Exclure les noms contenant ".vfq."
+    .where.not("LOWER(ygg_movies.name) LIKE ?", '%.vfq.%') # ✅ Exclut simplement toutes les entrées VFQ
     .order("#{sort_column} #{sort_direction}")
-    .includes(:plex_movies)
     .distinct
     .page(params[:page])
     .per(33)
@@ -50,7 +49,7 @@ end
   # end
 
   #   # Appliquer les filtres
-  #   @ygg_movies = apply_filters(@ygg_movies, @filter_params)
+  @ygg_movies = apply_filters(@ygg_movies, @filter_params)
 
 end
 def movie_details
@@ -166,6 +165,8 @@ private
       ygg_movies.created_at 
       ygg_movies.updated_at 
       plex_movies.created_at
+      tmdb_movies.popularity
+      tmdb_movies.vote_average
     ].include?(params[:sort]) ? params[:sort] : 'ygg_movies.created_at'
   end
 

@@ -5,7 +5,7 @@ autoit_script_path = "D:/app/gestionMedia/temporaire.exe"
 download_path = "C:/Users/krozer/Downloads"
 
 # URL de test
-test_url = "https://www.ygg.re/engine/search?name=one+piece&description=&file=&uploader=&category=2145&sub_category=2179&option_langue%3Amultiple%5B%5D=2&option_langue%3Amultiple%5B%5D=4&do=search"
+test_url = "https://www.yggtorrent.top/engine/search?name=one+piece&description=&file=&uploader=&category=2145&sub_category=2179&option_langue%3Amultiple%5B%5D=2&option_langue%3Amultiple%5B%5D=4&do=search"
 
 begin
   runner = AutoItRunner.new(autoit_script_path, download_path)

@@ -87,6 +87,8 @@
           <option value="ygg_movies.created_at" <%= "selected" if params[:sort] == "ygg_movies.created_at" %>>Ajout YggMovie</option>
           <option value="ygg_movies.updated_at" <%= "selected" if params[:sort] == "ygg_movies.updated_at" %>>Mise à jour YggMovie</option>
           <option value="plex_movies.created_at" <%= "selected" if params[:sort] == "plex_movies.created_at" %>>Ajout Plex</option>
+          <option value="tmdb_movies.popularity" <%= "selected" if params[:sort] == "tmdb_movies.popularity" %>>Popularité (TMDb)</option>
+          <option value="tmdb_movies.vote_average" <%= "selected" if params[:sort] == "tmdb_movies.vote_average" %>>Popularité (TMDb)</option>
         </select>
       </div>
       
